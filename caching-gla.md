@@ -16,18 +16,29 @@ By the end of this activity, students will be able to:
 Before diving into implementation, answer these questions:
 
 1. **What is caching and why is it important?**
-   - Write a 2-sentence explanation
-   - List 3 benefits of caching
+   - **Answer:** Caching is a technique that stores frequently accessed data in a fast-access layer (like memory) to reduce the time needed to retrieve it from slower sources (like databases). It significantly improves application performance by reducing database load and response times.
+   - **3 benefits of caching:**
+     1. Reduced database queries and server load
+     2. Faster response times and improved user experience
+     3. Better scalability and ability to handle more concurrent users
 
 2. **What are the different types of caching?**
-   - Database query caching
-   - Template caching
-   - View caching
-   - Full-page caching
+   - **Database query caching** - Stores results of database queries to avoid re-executing them
+   - **Template caching** - Caches rendered HTML templates to avoid re-rendering
+   - **View caching** - Caches entire view outputs including all processing logic
+   - **Full-page caching** - Caches complete HTTP responses for entire pages
 
 3. **Cache Invalidation Challenge**
-   - What problems can arise with stale cached data?
-   - When should cache be cleared?
+   - **What problems can arise with stale cached data?**
+     - Users see outdated information (e.g., old prices, deleted items still showing)
+     - Data inconsistency between cache and database
+     - Business logic errors from working with obsolete data
+     - Security issues if permissions/access controls are cached and changed
+   - **When should cache be cleared?**
+     - When data is created, updated, or deleted (CRUD operations)
+     - When cache timeout/TTL expires
+     - When deploying new code that changes data structure
+     - On manual cache flush for troubleshooting
 
 **Expected Time:** 15 minutes
 
@@ -82,9 +93,12 @@ pip install redis django-redis
 
 
 ### **Checkpoint Questions:**
-- Can you connect to Redis?
-- Are the new packages installed?
-- What port is Redis running on?
+- **Can you connect to Redis?**
+  - Answer: Yes, verified by running `redis-cli ping` which returned `PONG`
+- **Are the new packages installed?**
+  - Answer: Yes, `redis==5.0.1` and `django-redis==5.4.0` are installed (verified with `pip list`)
+- **What port is Redis running on?**
+  - Answer: Redis runs on port **6379** by default
 
 ---
 
@@ -130,9 +144,20 @@ print(cache.get('test_key'))
 
 
 ### **Challenge Questions:**
-1. What happens if Redis is not running?
-2. How would you use different Redis databases for different cache types?
-3. What's a reasonable default timeout for user data?
+1. **What happens if Redis is not running?**
+   - Answer: Django will raise a connection error when trying to access cache. The application may crash unless you have proper error handling. You should implement fallback logic to gracefully degrade to direct database queries when cache is unavailable.
+
+2. **How would you use different Redis databases for different cache types?**
+   - Answer: Redis supports 16 databases (0-15) by default. You can specify different databases in LOCATION:
+   ```python
+   CACHES = {
+       'default': {'LOCATION': 'redis://127.0.0.1:6379/0'},  # DB 0 for general cache
+       'sessions': {'LOCATION': 'redis://127.0.0.1:6379/1'},  # DB 1 for sessions
+   }
+   ```
+
+3. **What's a reasonable default timeout for user data?**
+   - Answer: **300-600 seconds (5-10 minutes)** is reasonable for user data that changes moderately. For rarely-changing data (like user profiles), 3600 seconds (1 hour) works well. For frequently changing data (like real-time stats), use 60-120 seconds.
 
 ---
 

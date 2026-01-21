@@ -3,8 +3,8 @@
 from django.core.management.base import BaseCommand
 from django.core.cache import cache
 from django.conf import settings
-from users.models import User
-from users.serializers import UserSerializer
+from users.models import User, Passenger
+from users.serializers import UserSerializer, PassengerSerializer
 
 
 class Command(BaseCommand):
@@ -40,4 +40,29 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(f'Successfully cached {cached_count} individual users')
         )
+        
+        # Step 6: Now cache passengers
+        passengers = Passenger.objects.all()
+        
+        # Step 7: Convert passengers to JSON format
+        passenger_serializer = PassengerSerializer(passengers, many=True)
+        
+        # Step 8: Cache the passenger list
+        cache.set('passenger_list', passenger_serializer.data, timeout=settings.CACHE_TTL)
+        self.stdout.write(f'Cached passenger list ({len(passengers)} passengers)')
+        
+        # Step 9: Cache each individual passenger
+        passenger_cached_count = 0
+        for passenger in passengers:
+            # Serialize individual passenger
+            passenger_data = PassengerSerializer(passenger).data
+            # Cache it with passenger_id in the key
+            cache.set(f'passenger_{passenger.id}', passenger_data, timeout=settings.CACHE_TTL)
+            passenger_cached_count += 1
+        
+        # Step 10: Print final success message
+        self.stdout.write(
+            self.style.SUCCESS(f'Successfully cached {passenger_cached_count} individual passengers')
+        )
         self.stdout.write(self.style.SUCCESS('Cache warm-up complete!'))
+

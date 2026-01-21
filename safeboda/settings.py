@@ -133,3 +133,21 @@ AUTH_USER_MODEL = 'users.User'
 # REST_FRAMEWORK = {
 #     'DEFAULT_AUTHENTICATION_CLASSES': []
 # }
+
+# Cache configuration
+# This tells Django to use Redis for caching
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',  # Redis server address
+        'TIMEOUT': 300,  # Default timeout is 5 minutes (300 seconds)
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
+# How long to keep cached data (in seconds)
+# 60 seconds = 1 minute
+CACHE_TTL = 60 * 5  # 5 minutes
+
